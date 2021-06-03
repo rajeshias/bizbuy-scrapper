@@ -137,4 +137,4 @@ if __name__ == "__main__":
     for city in cities:
         print("Scrapping...")
         data = checkallpages(city)
-        finalData = scrap(data, city)
+        scrap(data, city)
