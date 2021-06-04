@@ -35,7 +35,7 @@ def checkprogress(city, data):
             print("resuming right where you left!")
             print(len(data.keys()), ' more to go...')
         return df.to_dict(orient='list'), len(df.index)
-    except FileNotFoundError and KeyError:
+    except FileNotFoundError or KeyError:
         return defaultdict(list), 0
 
 def scrap(data, city):
@@ -99,23 +99,19 @@ def checkallpages(city):
     data = {}
     try:
         resume = pd.read_excel(output_path + f"{city.replace(' ', '-')}_progress.xlsx").to_dict()
-        if list(resume['pageno/status'].values())[0] == 'state completed':
-            choice0 = input(f'Would you like to overwrite {city} and {city}_progress files?(y/n)')
-            if choice0.lower() != 'y':
-                quit()
-        else:
-            choice0 = input(f'Would you like to resume where you left?(y/n):')
-            if choice0.lower() == 'y':
+        choice0 = input(f'Would you like to resume where you left?(y/n):')
+        if choice0.lower() == 'y':
 
-                # retrieve previous pagination data
-                for index, adno in enumerate(list(resume['Unnamed: 0'].values())):
-                    data[adno] = {
-                        'url': list(resume['url'].values())[index],
-                        'name': list(resume['name'].values())[index],
-                        'pageno/status': list(resume['pageno/status'].values())[index]
-                    }
-                page = int(list(resume['pageno/status'].values())[-1])
-                print(f'Resuming from page {page}')
+            # retrieve previous pagination data
+            for index, adno in enumerate(list(resume['Unnamed: 0'].values())):
+                data[adno] = {
+                    'url': list(resume['url'].values())[index],
+                    'name': list(resume['name'].values())[index],
+                    'pageno': list(resume['pageno'].values())[index]
+                }
+            page = int(list(resume['pageno'].values())[-1])
+            print(f'Resuming from page {page}')
+
     except FileNotFoundError:
         pass
 
@@ -134,16 +130,19 @@ def checkallpages(city):
             cards += (driver.find_elements_by_xpath('//a[@class="showcase"]'))
         except:
             pass
+        try:
+            cards += (driver.find_elements_by_xpath('//a[@class="basic"]'))
+        except:
+            pass
         pageno = page
         for card in cards:
             if card.get_attribute('id') in data.keys():
                 page = -1
-                pageno = 'state completed'
             if 4 < len(str(card.get_attribute('id'))) < 12:  # to get rid of auctions and franchise!
                 data[card.get_attribute('id')] = {
                     'url': card.get_attribute('href'),
                     'name': card.get_attribute('title'),
-                    'pageno/status': pageno
+                    'pageno': pageno
                 }
         paginationDF = pd.DataFrame.from_dict(data)
         paginationDF = paginationDF.transpose()
