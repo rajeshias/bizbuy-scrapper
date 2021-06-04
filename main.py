@@ -55,10 +55,13 @@ def scrap(data, city):
     for adno, details in data.items():
         randomsleep()
         driver.get(details['url'])
+        span8Element = driver.find_element_by_xpath('//div[@class="span8"]').text
+        if 'This listing is no longer available.' in span8Element:
+            continue
         scrap['URL'].append(details['url'])
         scrap['Name'].append(details['name'])
         scrap['Ad#'].append(adno)
-        scrap['Location'].append(driver.find_element_by_xpath('//div[@class="span8"]').text)
+        scrap['Location'].append(span8Element)
         section1 = driver.find_element_by_xpath('//div[@class="row-fluid b-margin financials clearfix"]')
         section1Headers = section1.find_elements_by_xpath('.//span[@class="title"]')
         section1Values = section1.find_elements_by_xpath('.//b')
@@ -70,7 +73,6 @@ def scrap(data, city):
         except:
             detailsHeaders = []
             detailsValues = []
-
 
         if len(detailsValues) > len(detailsHeaders):
             del detailsValues[2]
@@ -124,7 +126,6 @@ def scrap(data, city):
         dataFrame.to_excel(output_path + f"{city.replace(' ', '-')}.xlsx")
         count += 1
 
-
 def checkallpages(city):
     page = 1
     data = {}
@@ -144,6 +145,8 @@ def checkallpages(city):
                 return data
             page = int(list(resume['pageno'].values())[-1])
             print(f'Resuming from page {page}')
+        else:
+            quit()
 
     except FileNotFoundError:
         pass
