@@ -145,7 +145,7 @@ def checkallpages(city):
                 return data
             page = int(list(resume['pageno'].values())[-1])
             print(f'Resuming from page {page}')
-        else:
+        elif choice0.lower() == 'n':
             quit()
 
     except FileNotFoundError:
