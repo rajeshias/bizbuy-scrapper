@@ -53,6 +53,7 @@ def scrap(data, city):
     pd.set_option('display.max_columns', None)
     scrap, count = checkprogress(city, data)
     for adno, details in data.items():
+        randomsleep()
         driver.get(details['url'])
         scrap['URL'].append(details['url'])
         scrap['Name'].append(details['name'])
