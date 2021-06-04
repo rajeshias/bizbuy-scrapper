@@ -100,14 +100,13 @@ def checkallpages(city):
     try:
         resume = pd.read_excel(output_path + f"{city.replace(' ', '-')}_progress.xlsx").to_dict()
         if list(resume['pageno/status'].values())[0] == 'state completed':
-            # choice0 = input(f'{city} is up-to-date, would you like to check for new listings again?(y/n)')
-            # if choice0.lower() != 'y':
-            #     quit()
-            pass
+            choice0 = input(f'Would you like to overwrite {city} and {city}_progress files?(y/n)')
+            if choice0.lower() != 'y':
+                quit()
         else:
             choice0 = input(f'Would you like to resume where you left?(y/n):')
             if choice0.lower() == 'y':
-                
+
                 # retrieve previous pagination data
                 for index, adno in enumerate(list(resume['Unnamed: 0'].values())):
                     data[adno] = {
