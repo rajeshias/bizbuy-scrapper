@@ -1,10 +1,6 @@
 import csv
-import json
 import time
-import datetime
 from collections import defaultdict
-from pprint import pprint
-
 import pandas as pd
 import selenium.common.exceptions
 from selenium import webdriver
@@ -28,16 +24,23 @@ def checkprogress(city, data):
         df = pd.read_excel(output_path + f"{city.replace(' ', '-')}.xlsx")
         for i in df['Ad#']:
             del data[str(int(i))]
-        print(len(data.keys()), ' more to go...')
         if not len(data.keys()):
-            print(f'{city} Up-to-date')
+            print(f'{city} Up-to-date\n')
+            choice0 = input('Would you like to check for new listings again?(y/n)')
+            if choice0.lower() == 'y':
+                return defaultdict(list), 0
+            else:
+                quit()
+        else:
+            print("resuming right where you left!")
+            print(len(data.keys()), ' more to go...')
         return df.to_dict(orient='list'), len(df.index)
-    except FileNotFoundError:
+    except FileNotFoundError and KeyError:
         return defaultdict(list), 0
 
 def scrap(data, city):
     """
-    where the data extraction happens for each businesses
+    where the data extraction happens for each business
     """
     pd.set_option('display.max_columns', None)
     scrap, count = checkprogress(city, data)
@@ -92,9 +95,33 @@ def scrap(data, city):
 
 
 def checkallpages(city):
-    data = {}
-    print(f'Checking for new businesses for sale in {city}...')
     page = 1
+    data = {}
+    try:
+        resume = pd.read_excel(output_path + f"{city.replace(' ', '-')}_progress.xlsx").to_dict()
+        if list(resume['pageno/status'].values())[0] == 'state completed':
+            # choice0 = input(f'{city} is up-to-date, would you like to check for new listings again?(y/n)')
+            # if choice0.lower() != 'y':
+            #     quit()
+            pass
+        else:
+            choice0 = input(f'Would you like to resume where you left?(y/n):')
+            if choice0.lower() == 'y':
+                
+                # retrieve previous pagination data
+                for index, adno in enumerate(list(resume['Unnamed: 0'].values())):
+                    data[adno] = {
+                        'url': list(resume['url'].values())[index],
+                        'name': list(resume['name'].values())[index],
+                        'pageno/status': list(resume['pageno/status'].values())[index]
+                    }
+                page = int(list(resume['pageno/status'].values())[-1])
+                print(f'Resuming from page {page}')
+    except FileNotFoundError:
+        pass
+
+    print(f'Checking for new businesses for sale in {city}...')
+
     while page != 0:
         driver.get(
             f"https://www.bizbuysell.com/{city.lower().replace(' ', '-')}-businesses-for-sale/{page}?q=bHQ9MzAsNDAsODA%3D")
@@ -108,16 +135,22 @@ def checkallpages(city):
             cards += (driver.find_elements_by_xpath('//a[@class="showcase"]'))
         except:
             pass
+        pageno = page
         for card in cards:
             if card.get_attribute('id') in data.keys():
                 page = -1
-            if len(str(card.get_attribute('id'))) > 4:
+                pageno = 'state completed'
+            if 4 < len(str(card.get_attribute('id'))) < 12:  # to get rid of auctions and franchise!
                 data[card.get_attribute('id')] = {
                     'url': card.get_attribute('href'),
-                    'name': card.get_attribute('title')
+                    'name': card.get_attribute('title'),
+                    'pageno/status': pageno
                 }
+        paginationDF = pd.DataFrame.from_dict(data)
+        paginationDF = paginationDF.transpose()
+        # print(paginationDF)
+        paginationDF.to_excel(output_path + f"{city.replace(' ', '-')}_progress.xlsx")
         page += 1
-        # break #get rid
     return data
 
 
