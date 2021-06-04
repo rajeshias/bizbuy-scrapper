@@ -53,7 +53,6 @@ def scrap(data, city):
     pd.set_option('display.max_columns', None)
     scrap, count = checkprogress(city, data)
     for adno, details in data.items():
-        randomsleep()
         driver.get(details['url'])
         scrap['URL'].append(details['url'])
         scrap['Name'].append(details['name'])
@@ -70,6 +69,14 @@ def scrap(data, city):
         if len(detailsValues) > len(detailsHeaders):
             del detailsValues[2]
 
+        for i, j in zip(section1Headers, section1Values):
+            if i.text[:-1] not in scrap.keys():
+                scrap[i.text[:-1]] = []
+
+        for i, j in zip(detailsHeaders, detailsValues):
+            if 'details_' + i.text[:-1] not in scrap.keys():
+                scrap['details_' + i.text[:-1]] = []
+
         for i, j in scrap.items():
             while len(j) < count:
                 scrap[i].append('')
@@ -78,7 +85,7 @@ def scrap(data, city):
             scrap[i.text[:-1]].append(j.text)
         for i, j in zip(detailsHeaders, detailsValues):
             scrap['details_' + i.text[:-1]].append(j.text)
-        
+
         try:
             scrap['Short Description'].append(driver.find_element_by_xpath('//b[@class="profileAdLine"]').text)
         except:
@@ -87,11 +94,13 @@ def scrap(data, city):
             scrap['Long Description'].append(driver.find_element_by_xpath('//div[@class="businessDescription"]').text)
         except:
             scrap['Long Description'].append('')
-
-        scrap['listedBy'].append(driver.find_element_by_xpath('//div[@class="broker"]').text.replace('Phone Number',
-                                                                                             '').replace(
-            'Business Listed By:', '').replace('View My Listings', '').replace('Startup Listed By:', '').replace(
-            'Property Listed By:', '').strip())
+        try:
+            scrap['listedBy'].append(driver.find_element_by_xpath('//div[@class="broker"]').text.replace('Phone Number',
+                                                                                                 '').replace(
+                'Business Listed By:', '').replace('View My Listings', '').replace('Startup Listed By:', '').replace(
+                'Property Listed By:', '').strip())
+        except:
+            scrap['listedBy'].append('')
         try:
             scrap['phoneNo'].append(driver.find_element_by_xpath('//label[@class="ctc_phone"]').find_element_by_xpath('.//a').get_attribute(
                     'href').split(':')[-1].strip())
