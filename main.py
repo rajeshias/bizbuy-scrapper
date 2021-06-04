@@ -63,9 +63,14 @@ def scrap(data, city):
         section1Headers = section1.find_elements_by_xpath('.//span[@class="title"]')
         section1Values = section1.find_elements_by_xpath('.//b')
 
-        details = driver.find_element_by_xpath('//dl[@class="listingProfile_details"]')
-        detailsHeaders = details.find_elements_by_xpath('.//dt')
-        detailsValues = details.find_elements_by_xpath('.//dd')
+        try:
+            details = driver.find_element_by_xpath('//dl[@class="listingProfile_details"]')
+            detailsHeaders = details.find_elements_by_xpath('.//dt')
+            detailsValues = details.find_elements_by_xpath('.//dd')
+        except:
+            detailsHeaders = []
+            detailsValues = []
+
 
         if len(detailsValues) > len(detailsHeaders):
             del detailsValues[2]
