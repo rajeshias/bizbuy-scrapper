@@ -23,7 +23,10 @@ def checkprogress(city, data):
     try:
         df = pd.read_excel(output_path + f"{city.replace(' ', '-')}.xlsx")
         for i in df['Ad#']:
+            # try:
             del data[str(int(i))]
+            # except KeyError:
+            #     pass
         if not len(data.keys()):
             print(f'{city} Up-to-date\n')
             choice0 = input('Would you like to check for new listings again?(y/n)')
@@ -53,14 +56,20 @@ def scrap(data, city):
         section1 = driver.find_element_by_xpath('//div[@class="row-fluid b-margin financials clearfix"]')
         section1Headers = section1.find_elements_by_xpath('.//span[@class="title"]')
         section1Values = section1.find_elements_by_xpath('.//b')
-        for i, j in zip(section1Headers, section1Values):
-            scrap[i.text[:-1]].append(j.text)
 
         details = driver.find_element_by_xpath('//dl[@class="listingProfile_details"]')
         detailsHeaders = details.find_elements_by_xpath('.//dt')
         detailsValues = details.find_elements_by_xpath('.//dd')
+
         if len(detailsValues) > len(detailsHeaders):
             del detailsValues[2]
+
+        for i, j in scrap.items():
+            while len(j) < count:
+                scrap[i].append('')
+
+        for i, j in zip(section1Headers, section1Values):
+            scrap[i.text[:-1]].append(j.text)
         for i, j in zip(detailsHeaders, detailsValues):
             scrap['details_' + i.text[:-1]].append(j.text)
 
@@ -79,9 +88,6 @@ def scrap(data, city):
         except selenium.common.exceptions.NoSuchElementException:
             scrap['phoneNo'].append('')
 
-        for i, j in scrap.items():
-            while len(j) < count+1:
-                scrap[i].append('')
 
         dataFrame = pd.DataFrame.from_dict(scrap, orient='index')
         dataFrame = dataFrame.transpose()
@@ -104,11 +110,13 @@ def checkallpages(city):
 
             # retrieve previous pagination data
             for index, adno in enumerate(list(resume['Unnamed: 0'].values())):
-                data[adno] = {
+                data[str(adno)] = {
                     'url': list(resume['url'].values())[index],
                     'name': list(resume['name'].values())[index],
                     'pageno': list(resume['pageno'].values())[index]
                 }
+            if list(resume['pageno'].values())[-1] == 'complete':
+                return data
             page = int(list(resume['pageno'].values())[-1])
             print(f'Resuming from page {page}')
 
@@ -138,6 +146,7 @@ def checkallpages(city):
         for card in cards:
             if card.get_attribute('id') in data.keys():
                 page = -1
+                pageno = 'complete'
             if 4 < len(str(card.get_attribute('id'))) < 12:  # to get rid of auctions and franchise!
                 data[card.get_attribute('id')] = {
                     'url': card.get_attribute('href'),
