@@ -1,5 +1,6 @@
 import csv
 import time
+import random
 from collections import defaultdict
 import pandas as pd
 import selenium.common.exceptions
@@ -19,6 +20,10 @@ driver = webdriver.Chrome(chrome_driver_location, options=options)
 action = ActionChains(driver)
 wait = WebDriverWait(driver, 200)
 
+def randomsleep():
+    time.sleep(random.randint(1, 6))
+    
+    
 def checkprogress(city, data):
     try:
         df = pd.read_excel(output_path + f"{city.replace(' ', '-')}.xlsx")
@@ -48,6 +53,7 @@ def scrap(data, city):
     pd.set_option('display.max_columns', None)
     scrap, count = checkprogress(city, data)
     for adno, details in data.items():
+        randomsleep()
         driver.get(details['url'])
         scrap['URL'].append(details['url'])
         scrap['Name'].append(details['name'])
@@ -126,6 +132,7 @@ def checkallpages(city):
     print(f'Checking for new businesses for sale in {city}...')
 
     while page != 0:
+        randomsleep()
         driver.get(
             f"https://www.bizbuysell.com/{city.lower().replace(' ', '-')}-businesses-for-sale/{page}?q=bHQ9MzAsNDAsODA%3D")
         time.sleep(1)
