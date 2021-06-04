@@ -78,11 +78,15 @@ def scrap(data, city):
             scrap[i.text[:-1]].append(j.text)
         for i, j in zip(detailsHeaders, detailsValues):
             scrap['details_' + i.text[:-1]].append(j.text)
-
-        scrap['Short Description'].append(driver.find_element_by_xpath('//b[@class="profileAdLine"]').text)
-        scrap['Long Description'].append(driver.find_element_by_xpath('//div[@class="businessDescription"]').text)
-
-
+        
+        try:
+            scrap['Short Description'].append(driver.find_element_by_xpath('//b[@class="profileAdLine"]').text)
+        except:
+            scrap['Short Description'].append('')
+        try:
+            scrap['Long Description'].append(driver.find_element_by_xpath('//div[@class="businessDescription"]').text)
+        except:
+            scrap['Long Description'].append('')
 
         scrap['listedBy'].append(driver.find_element_by_xpath('//div[@class="broker"]').text.replace('Phone Number',
                                                                                              '').replace(
