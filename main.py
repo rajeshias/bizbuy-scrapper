@@ -14,6 +14,7 @@ output_path = ''                                # leave blank for using the same
 
 options = webdriver.ChromeOptions()
 # options.add_argument('--headless')
+options.add_argument("--disable-gpu")
 # options.add_argument("--start-maximized")
 driver = webdriver.Chrome(chrome_driver_location, options=options)
 
