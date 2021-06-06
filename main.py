@@ -1,6 +1,7 @@
 import csv
 import time
 import random
+import datetime
 from collections import defaultdict
 import pandas as pd
 import selenium.common.exceptions
@@ -66,18 +67,19 @@ def scrap(data, city):
         span8Element = driver.find_element_by_xpath('//div[@class="span8"]').text
         if 'This listing is no longer available.' in span8Element:
             continue
+        scrap['timestamp'].append(datetime.datetime.now())
         scrap['URL'].append(details['url'])
         scrap['Name'].append(details['name'])
         scrap['Ad#'].append(adno)
         scrap['Location'].append(span8Element)
         section1 = driver.find_element_by_xpath('//div[@class="row-fluid b-margin financials clearfix"]')
         section1Headers = section1.find_elements_by_xpath('.//span[@class="title"]')
-        section1Values = section1.find_elements_by_xpath('.//b')
+        section1Values = section1.find_elements_by_xpath('.//b').replace('$', '').replace('N/A', '')
 
         try:
             details = driver.find_element_by_xpath('//dl[@class="listingProfile_details"]')
             detailsHeaders = details.find_elements_by_xpath('.//dt')
-            detailsValues = details.find_elements_by_xpath('.//dd')
+            detailsValues = details.find_elements_by_xpath('.//dd').replace('$', '').replace('N/A', '')
         except:
             detailsHeaders = []
             detailsValues = []
@@ -186,6 +188,7 @@ def checkallpages(city):
                 pageno = 'complete'
             if 4 < len(str(card.get_attribute('id'))) < 12:  # to get rid of auctions and franchise!
                 data[card.get_attribute('id')] = {
+                    'timestamp': datetime.datetime.now(),
                     'url': card.get_attribute('href'),
                     'name': card.get_attribute('title'),
                     'pageno': pageno
