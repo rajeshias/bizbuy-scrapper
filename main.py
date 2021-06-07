@@ -100,9 +100,9 @@ def scrap(data, city):
                 scrap[i].append('')
 
         for i, j in zip(section1Headers, section1Values):
-            scrap[i.text[:-1]].append(j.text.replace('$', '').replace('N/A', ''))
+            scrap[i.text[:-1]].append(j.text.replace('$', '').replace('N/A', '').replace('*', ''))
         for i, j in zip(detailsHeaders, detailsValues):
-            scrap['details_' + i.text[:-1]].append(j.text.replace('$', '').replace('N/A', ''))
+            scrap['details_' + i.text[:-1]].append(j.text.replace('$', '').replace('N/A', '').replace('*', ''))
 
         try:
             scrap['Short Description'].append(driver.find_element_by_xpath('//b[@class="profileAdLine"]').text)
