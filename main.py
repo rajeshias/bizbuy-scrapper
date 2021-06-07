@@ -133,7 +133,9 @@ def scrap(data, city):
         dataFrame = dataFrame.applymap(lambda x: x.encode('unicode_escape').
                                        decode('utf-8') if isinstance(x, str) else x)
         # print(dataFrame)
-        dataFrame.to_excel(output_path + f"{city.replace(' ', '-')}.xlsx")
+        writer = pd.ExcelWriter(output_path + f"{city.replace(' ', '-')}.xlsx", engine='xlsxwriter', options={'strings_to_numbers': True})
+        dataFrame.to_excel(writer)
+        writer.save()
         count += 1
 
 def checkallpages(city):
@@ -196,7 +198,9 @@ def checkallpages(city):
         paginationDF = pd.DataFrame.from_dict(data)
         paginationDF = paginationDF.transpose()
         # print(paginationDF)
-        paginationDF.to_excel(output_path + f"{city.replace(' ', '-')}_progress.xlsx")
+        writer = pd.ExcelWriter(output_path + f"{city.replace(' ', '-')}_progress.xlsx", engine='xlsxwriter', options={'strings_to_numbers': True})
+        paginationDF.to_excel(writer)
+        writer.save()
         page += 1
     return data
 
