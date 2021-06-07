@@ -74,12 +74,12 @@ def scrap(data, city):
         scrap['Location'].append(span8Element)
         section1 = driver.find_element_by_xpath('//div[@class="row-fluid b-margin financials clearfix"]')
         section1Headers = section1.find_elements_by_xpath('.//span[@class="title"]')
-        section1Values = section1.find_elements_by_xpath('.//b').replace('$', '').replace('N/A', '')
+        section1Values = section1.find_elements_by_xpath('.//b')
 
         try:
             details = driver.find_element_by_xpath('//dl[@class="listingProfile_details"]')
             detailsHeaders = details.find_elements_by_xpath('.//dt')
-            detailsValues = details.find_elements_by_xpath('.//dd').replace('$', '').replace('N/A', '')
+            detailsValues = details.find_elements_by_xpath('.//dd')
         except:
             detailsHeaders = []
             detailsValues = []
@@ -100,9 +100,9 @@ def scrap(data, city):
                 scrap[i].append('')
 
         for i, j in zip(section1Headers, section1Values):
-            scrap[i.text[:-1]].append(j.text)
+            scrap[i.text[:-1]].append(j.text.replace('$', '').replace('N/A', ''))
         for i, j in zip(detailsHeaders, detailsValues):
-            scrap['details_' + i.text[:-1]].append(j.text)
+            scrap['details_' + i.text[:-1]].append(j.text.replace('$', '').replace('N/A', ''))
 
         try:
             scrap['Short Description'].append(driver.find_element_by_xpath('//b[@class="profileAdLine"]').text)
