@@ -11,7 +11,7 @@ from selenium.webdriver import ActionChains
 
 '''input data'''
 chrome_driver_location = '../chromedriver.exe'  # download url: https://chromedriver.chromium.org/downloads
-output_path = ''                                # leave blank for using the same path as the script
+output_path = ''  # leave blank for using the same path as the script
 
 options = webdriver.ChromeOptions()
 # options.add_argument('--headless')
@@ -29,10 +29,11 @@ driver = webdriver.Chrome(chrome_driver_location, options=options)
 action = ActionChains(driver)
 wait = WebDriverWait(driver, 200)
 
+
 def randomsleep():
     time.sleep(random.randint(1, 6))
-    
-    
+
+
 def checkprogress(city, data):
     try:
         df = pd.read_excel(output_path + f"{city.replace(' ', '-')}.xlsx")
@@ -54,6 +55,7 @@ def checkprogress(city, data):
         return df.to_dict(orient='list'), len(df.index)
     except FileNotFoundError or KeyError:
         return defaultdict(list), 0
+
 
 def scrap(data, city):
     """
@@ -100,9 +102,15 @@ def scrap(data, city):
                 scrap[i].append('')
 
         for i, j in zip(section1Headers, section1Values):
-            scrap[i.text[:-1]].append(j.text.replace('$', '').replace('N/A', '').replace('*', ''))
+            newValue = j.text.replace('$', '').replace('N/A', '').replace('*', '')
+            if newValue.replace(',', '').islanum():
+                newValue = newValue.replace(',', '')
+            scrap[i.text[:-1]].append(newValue)
         for i, j in zip(detailsHeaders, detailsValues):
-            scrap['details_' + i.text[:-1]].append(j.text.replace('$', '').replace('N/A', '').replace('*', ''))
+            newValue = j.text.replace('$', '').replace('N/A', '').replace('*', '')
+            if newValue.replace(',', '').islanum():
+                newValue = newValue.replace(',', '')
+            scrap['details_' + i.text[:-1]].append(newValue)
 
         try:
             scrap['Short Description'].append(driver.find_element_by_xpath('//b[@class="profileAdLine"]').text)
@@ -114,17 +122,17 @@ def scrap(data, city):
             scrap['Long Description'].append('')
         try:
             scrap['listedBy'].append(driver.find_element_by_xpath('//div[@class="broker"]').text.replace('Phone Number',
-                                                                                                 '').replace(
+                                                                                                         '').replace(
                 'Business Listed By:', '').replace('View My Listings', '').replace('Startup Listed By:', '').replace(
                 'Property Listed By:', '').strip())
         except:
             scrap['listedBy'].append('')
         try:
-            scrap['phoneNo'].append(driver.find_element_by_xpath('//label[@class="ctc_phone"]').find_element_by_xpath('.//a').get_attribute(
+            scrap['phoneNo'].append(
+                driver.find_element_by_xpath('//label[@class="ctc_phone"]').find_element_by_xpath('.//a').get_attribute(
                     'href').split(':')[-1].strip())
         except selenium.common.exceptions.NoSuchElementException:
             scrap['phoneNo'].append('')
-
 
         dataFrame = pd.DataFrame.from_dict(scrap, orient='index')
         dataFrame = dataFrame.transpose()
@@ -133,10 +141,12 @@ def scrap(data, city):
         dataFrame = dataFrame.applymap(lambda x: x.encode('unicode_escape').
                                        decode('utf-8') if isinstance(x, str) else x)
         # print(dataFrame)
-        writer = pd.ExcelWriter(output_path + f"{city.replace(' ', '-')}.xlsx", engine='xlsxwriter', options={'strings_to_numbers': True})
+        writer = pd.ExcelWriter(output_path + f"{city.replace(' ', '-')}.xlsx", engine='xlsxwriter',
+                                options={'strings_to_numbers': True})
         dataFrame.to_excel(writer)
         writer.save()
         count += 1
+
 
 def checkallpages(city):
     page = 1
@@ -198,7 +208,8 @@ def checkallpages(city):
         paginationDF = pd.DataFrame.from_dict(data)
         paginationDF = paginationDF.transpose()
         # print(paginationDF)
-        writer = pd.ExcelWriter(output_path + f"{city.replace(' ', '-')}_progress.xlsx", engine='xlsxwriter', options={'strings_to_numbers': True})
+        writer = pd.ExcelWriter(output_path + f"{city.replace(' ', '-')}_progress.xlsx", engine='xlsxwriter',
+                                options={'strings_to_numbers': True})
         paginationDF.to_excel(writer)
         writer.save()
         page += 1
