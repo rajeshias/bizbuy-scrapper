@@ -103,12 +103,12 @@ def scrap(data, city):
 
         for i, j in zip(section1Headers, section1Values):
             newValue = j.text.replace('$', '').replace('N/A', '').replace('*', '')
-            if newValue.replace(',', '').islanum():
+            if newValue.replace(',', '').isalnum():
                 newValue = newValue.replace(',', '')
             scrap[i.text[:-1]].append(newValue)
         for i, j in zip(detailsHeaders, detailsValues):
             newValue = j.text.replace('$', '').replace('N/A', '').replace('*', '')
-            if newValue.replace(',', '').islanum():
+            if newValue.replace(',', '').isalnum():
                 newValue = newValue.replace(',', '')
             scrap['details_' + i.text[:-1]].append(newValue)
 
